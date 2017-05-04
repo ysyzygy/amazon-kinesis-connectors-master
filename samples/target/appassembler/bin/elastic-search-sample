@@ -1,0 +1,128 @@
+#!/bin/sh
+# ----------------------------------------------------------------------------
+#  Copyright 2001-2006 The Apache Software Foundation.
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+# ----------------------------------------------------------------------------
+#
+#   Copyright (c) 2001-2006 The Apache Software Foundation.  All rights
+#   reserved.
+
+
+# resolve links - $0 may be a softlink
+PRG="$0"
+
+while [ -h "$PRG" ]; do
+  ls=`ls -ld "$PRG"`
+  link=`expr "$ls" : '.*-> \(.*\)$'`
+  if expr "$link" : '/.*' > /dev/null; then
+    PRG="$link"
+  else
+    PRG=`dirname "$PRG"`/"$link"
+  fi
+done
+
+PRGDIR=`dirname "$PRG"`
+BASEDIR=`cd "$PRGDIR/.." >/dev/null; pwd`
+
+# Reset the REPO variable. If you need to influence this use the environment setup file.
+REPO=
+
+
+# OS specific support.  $var _must_ be set to either true or false.
+cygwin=false;
+darwin=false;
+case "`uname`" in
+  CYGWIN*) cygwin=true ;;
+  Darwin*) darwin=true
+           if [ -z "$JAVA_VERSION" ] ; then
+             JAVA_VERSION="CurrentJDK"
+           else
+             echo "Using Java version: $JAVA_VERSION"
+           fi
+		   if [ -z "$JAVA_HOME" ]; then
+		      if [ -x "/usr/libexec/java_home" ]; then
+			      JAVA_HOME=`/usr/libexec/java_home`
+			  else
+			      JAVA_HOME=/System/Library/Frameworks/JavaVM.framework/Versions/${JAVA_VERSION}/Home
+			  fi
+           fi       
+           ;;
+esac
+
+if [ -z "$JAVA_HOME" ] ; then
+  if [ -r /etc/gentoo-release ] ; then
+    JAVA_HOME=`java-config --jre-home`
+  fi
+fi
+
+# For Cygwin, ensure paths are in UNIX format before anything is touched
+if $cygwin ; then
+  [ -n "$JAVA_HOME" ] && JAVA_HOME=`cygpath --unix "$JAVA_HOME"`
+  [ -n "$CLASSPATH" ] && CLASSPATH=`cygpath --path --unix "$CLASSPATH"`
+fi
+
+# If a specific java binary isn't specified search for the standard 'java' binary
+if [ -z "$JAVACMD" ] ; then
+  if [ -n "$JAVA_HOME"  ] ; then
+    if [ -x "$JAVA_HOME/jre/sh/java" ] ; then
+      # IBM's JDK on AIX uses strange locations for the executables
+      JAVACMD="$JAVA_HOME/jre/sh/java"
+    else
+      JAVACMD="$JAVA_HOME/bin/java"
+    fi
+  else
+    JAVACMD=`which java`
+  fi
+fi
+
+if [ ! -x "$JAVACMD" ] ; then
+  echo "Error: JAVA_HOME is not defined correctly." 1>&2
+  echo "  We cannot execute $JAVACMD" 1>&2
+  exit 1
+fi
+
+if [ -z "$REPO" ]
+then
+  REPO="$BASEDIR"/repo
+fi
+
+CLASSPATH="$BASEDIR"/etc:"$REPO"/com/amazonaws/amazon-kinesis-connectors/1.3.0/amazon-kinesis-connectors-1.3.0.jar:"$REPO"/com/amazonaws/amazon-kinesis-client/1.7.2/amazon-kinesis-client-1.7.2.jar:"$REPO"/com/google/guava/guava/18.0/guava-18.0.jar:"$REPO"/com/google/protobuf/protobuf-java/2.6.1/protobuf-java-2.6.1.jar:"$REPO"/commons-lang/commons-lang/2.6/commons-lang-2.6.jar:"$REPO"/com/amazonaws/aws-java-sdk-core/1.11.14/aws-java-sdk-core-1.11.14.jar:"$REPO"/commons-logging/commons-logging/1.1.3/commons-logging-1.1.3.jar:"$REPO"/org/apache/httpcomponents/httpclient/4.5.2/httpclient-4.5.2.jar:"$REPO"/org/apache/httpcomponents/httpcore/4.4.4/httpcore-4.4.4.jar:"$REPO"/commons-codec/commons-codec/1.9/commons-codec-1.9.jar:"$REPO"/com/fasterxml/jackson/dataformat/jackson-dataformat-cbor/2.6.6/jackson-dataformat-cbor-2.6.6.jar:"$REPO"/joda-time/joda-time/2.8.1/joda-time-2.8.1.jar:"$REPO"/com/amazonaws/aws-java-sdk-kinesis/1.11.14/aws-java-sdk-kinesis-1.11.14.jar:"$REPO"/com/fasterxml/jackson/core/jackson-core/2.6.6/jackson-core-2.6.6.jar:"$REPO"/com/fasterxml/jackson/core/jackson-databind/2.6.6/jackson-databind-2.6.6.jar:"$REPO"/com/fasterxml/jackson/core/jackson-annotations/2.6.0/jackson-annotations-2.6.0.jar:"$REPO"/org/elasticsearch/client/x-pack-transport/5.1.1/x-pack-transport-5.1.1.jar:"$REPO"/org/elasticsearch/plugin/x-pack-api/5.1.1/x-pack-api-5.1.1.jar:"$REPO"/org/elasticsearch/plugin/transport-netty3-client/5.1.1/transport-netty3-client-5.1.1.jar:"$REPO"/io/netty/netty/3.10.6.Final/netty-3.10.6.Final.jar:"$REPO"/org/elasticsearch/plugin/transport-netty4-client/5.1.1/transport-netty4-client-5.1.1.jar:"$REPO"/io/netty/netty-buffer/4.1.6.Final/netty-buffer-4.1.6.Final.jar:"$REPO"/io/netty/netty-codec/4.1.6.Final/netty-codec-4.1.6.Final.jar:"$REPO"/io/netty/netty-codec-http/4.1.6.Final/netty-codec-http-4.1.6.Final.jar:"$REPO"/io/netty/netty-common/4.1.6.Final/netty-common-4.1.6.Final.jar:"$REPO"/io/netty/netty-handler/4.1.6.Final/netty-handler-4.1.6.Final.jar:"$REPO"/io/netty/netty-resolver/4.1.6.Final/netty-resolver-4.1.6.Final.jar:"$REPO"/io/netty/netty-transport/4.1.6.Final/netty-transport-4.1.6.Final.jar:"$REPO"/com/unboundid/unboundid-ldapsdk/3.2.0/unboundid-ldapsdk-3.2.0.jar:"$REPO"/org/bouncycastle/bcprov-jdk15on/1.55/bcprov-jdk15on-1.55.jar:"$REPO"/org/bouncycastle/bcpkix-jdk15on/1.55/bcpkix-jdk15on-1.55.jar:"$REPO"/com/googlecode/owasp-java-html-sanitizer/owasp-java-html-sanitizer/r239/owasp-java-html-sanitizer-r239.jar:"$REPO"/com/sun/mail/javax.mail/1.5.3/javax.mail-1.5.3.jar:"$REPO"/javax/activation/activation/1.1/activation-1.1.jar:"$REPO"/org/elasticsearch/client/rest/5.1.1/rest-5.1.1.jar:"$REPO"/org/apache/httpcomponents/httpasyncclient/4.1.2/httpasyncclient-4.1.2.jar:"$REPO"/org/apache/httpcomponents/httpcore-nio/4.4.5/httpcore-nio-4.4.5.jar:"$REPO"/org/elasticsearch/client/sniffer/5.1.1/sniffer-5.1.1.jar:"$REPO"/org/elasticsearch/client/transport/5.1.1/transport-5.1.1.jar:"$REPO"/org/elasticsearch/plugin/reindex-client/5.1.1/reindex-client-5.1.1.jar:"$REPO"/org/elasticsearch/plugin/lang-mustache-client/5.1.1/lang-mustache-client-5.1.1.jar:"$REPO"/com/github/spullara/mustache/java/compiler/0.9.3/compiler-0.9.3.jar:"$REPO"/org/elasticsearch/plugin/percolator-client/5.1.1/percolator-client-5.1.1.jar:"$REPO"/com/amazonaws/aws-java-sdk/1.11.14/aws-java-sdk-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-support/1.11.14/aws-java-sdk-support-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-simpledb/1.11.14/aws-java-sdk-simpledb-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-simpleworkflow/1.11.14/aws-java-sdk-simpleworkflow-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-storagegateway/1.11.14/aws-java-sdk-storagegateway-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-route53/1.11.14/aws-java-sdk-route53-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-s3/1.11.14/aws-java-sdk-s3-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-importexport/1.11.14/aws-java-sdk-importexport-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-sts/1.11.14/aws-java-sdk-sts-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-sqs/1.11.14/aws-java-sdk-sqs-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-rds/1.11.14/aws-java-sdk-rds-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-redshift/1.11.14/aws-java-sdk-redshift-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-elasticbeanstalk/1.11.14/aws-java-sdk-elasticbeanstalk-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-glacier/1.11.14/aws-java-sdk-glacier-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-iam/1.11.14/aws-java-sdk-iam-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-datapipeline/1.11.14/aws-java-sdk-datapipeline-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-elasticloadbalancing/1.11.14/aws-java-sdk-elasticloadbalancing-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-emr/1.11.14/aws-java-sdk-emr-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-elasticache/1.11.14/aws-java-sdk-elasticache-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-elastictranscoder/1.11.14/aws-java-sdk-elastictranscoder-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-ec2/1.11.14/aws-java-sdk-ec2-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-dynamodb/1.11.14/aws-java-sdk-dynamodb-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-sns/1.11.14/aws-java-sdk-sns-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-cloudtrail/1.11.14/aws-java-sdk-cloudtrail-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-cloudwatch/1.11.14/aws-java-sdk-cloudwatch-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-logs/1.11.14/aws-java-sdk-logs-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-events/1.11.14/aws-java-sdk-events-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-cognitoidentity/1.11.14/aws-java-sdk-cognitoidentity-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-cognitosync/1.11.14/aws-java-sdk-cognitosync-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-directconnect/1.11.14/aws-java-sdk-directconnect-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-cloudformation/1.11.14/aws-java-sdk-cloudformation-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-cloudfront/1.11.14/aws-java-sdk-cloudfront-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-opsworks/1.11.14/aws-java-sdk-opsworks-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-ses/1.11.14/aws-java-sdk-ses-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-autoscaling/1.11.14/aws-java-sdk-autoscaling-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-cloudsearch/1.11.14/aws-java-sdk-cloudsearch-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-cloudwatchmetrics/1.11.14/aws-java-sdk-cloudwatchmetrics-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-swf-libraries/1.11.14/aws-java-sdk-swf-libraries-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-codedeploy/1.11.14/aws-java-sdk-codedeploy-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-codepipeline/1.11.14/aws-java-sdk-codepipeline-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-kms/1.11.14/aws-java-sdk-kms-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-config/1.11.14/aws-java-sdk-config-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-lambda/1.11.14/aws-java-sdk-lambda-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-ecs/1.11.14/aws-java-sdk-ecs-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-ecr/1.11.14/aws-java-sdk-ecr-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-cloudhsm/1.11.14/aws-java-sdk-cloudhsm-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-ssm/1.11.14/aws-java-sdk-ssm-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-workspaces/1.11.14/aws-java-sdk-workspaces-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-machinelearning/1.11.14/aws-java-sdk-machinelearning-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-directory/1.11.14/aws-java-sdk-directory-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-efs/1.11.14/aws-java-sdk-efs-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-codecommit/1.11.14/aws-java-sdk-codecommit-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-devicefarm/1.11.14/aws-java-sdk-devicefarm-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-elasticsearch/1.11.14/aws-java-sdk-elasticsearch-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-waf/1.11.14/aws-java-sdk-waf-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-marketplacecommerceanalytics/1.11.14/aws-java-sdk-marketplacecommerceanalytics-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-inspector/1.11.14/aws-java-sdk-inspector-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-iot/1.11.14/aws-java-sdk-iot-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-api-gateway/1.11.14/aws-java-sdk-api-gateway-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-acm/1.11.14/aws-java-sdk-acm-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-gamelift/1.11.14/aws-java-sdk-gamelift-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-dms/1.11.14/aws-java-sdk-dms-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-marketplacemeteringservice/1.11.14/aws-java-sdk-marketplacemeteringservice-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-cognitoidp/1.11.14/aws-java-sdk-cognitoidp-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-discovery/1.11.14/aws-java-sdk-discovery-1.11.14.jar:"$REPO"/com/amazonaws/aws-java-sdk-applicationautoscaling/1.11.14/aws-java-sdk-applicationautoscaling-1.11.14.jar:"$REPO"/org/postgresql/postgresql/9.3-1101-jdbc41/postgresql-9.3-1101-jdbc41.jar:"$REPO"/org/elasticsearch/elasticsearch/1.2.1/elasticsearch-1.2.1.jar:"$REPO"/org/apache/lucene/lucene-analyzers-common/4.8.1/lucene-analyzers-common-4.8.1.jar:"$REPO"/org/apache/lucene/lucene-codecs/4.8.1/lucene-codecs-4.8.1.jar:"$REPO"/org/apache/lucene/lucene-queries/4.8.1/lucene-queries-4.8.1.jar:"$REPO"/org/apache/lucene/lucene-memory/4.8.1/lucene-memory-4.8.1.jar:"$REPO"/org/apache/lucene/lucene-highlighter/4.8.1/lucene-highlighter-4.8.1.jar:"$REPO"/org/apache/lucene/lucene-queryparser/4.8.1/lucene-queryparser-4.8.1.jar:"$REPO"/org/apache/lucene/lucene-sandbox/4.8.1/lucene-sandbox-4.8.1.jar:"$REPO"/org/apache/lucene/lucene-suggest/4.8.1/lucene-suggest-4.8.1.jar:"$REPO"/org/apache/lucene/lucene-misc/4.8.1/lucene-misc-4.8.1.jar:"$REPO"/org/apache/lucene/lucene-join/4.8.1/lucene-join-4.8.1.jar:"$REPO"/org/apache/lucene/lucene-grouping/4.8.1/lucene-grouping-4.8.1.jar:"$REPO"/org/apache/lucene/lucene-spatial/4.8.1/lucene-spatial-4.8.1.jar:"$REPO"/com/spatial4j/spatial4j/0.4.1/spatial4j-0.4.1.jar:"$REPO"/org/apache/lucene/lucene-core/4.8.1/lucene-core-4.8.1.jar:"$REPO"/com/amazonaws/amazon-kinesis-connectors-samples/1.0.0-SNAPSHOT/amazon-kinesis-connectors-samples-1.0.0-SNAPSHOT.jar
+
+ENDORSED_DIR=
+if [ -n "$ENDORSED_DIR" ] ; then
+  CLASSPATH=$BASEDIR/$ENDORSED_DIR/*:$CLASSPATH
+fi
+
+if [ -n "$CLASSPATH_PREFIX" ] ; then
+  CLASSPATH=$CLASSPATH_PREFIX:$CLASSPATH
+fi
+
+# For Cygwin, switch paths to Windows format before running java
+if $cygwin; then
+  [ -n "$CLASSPATH" ] && CLASSPATH=`cygpath --path --windows "$CLASSPATH"`
+  [ -n "$JAVA_HOME" ] && JAVA_HOME=`cygpath --path --windows "$JAVA_HOME"`
+  [ -n "$HOME" ] && HOME=`cygpath --path --windows "$HOME"`
+  [ -n "$BASEDIR" ] && BASEDIR=`cygpath --path --windows "$BASEDIR"`
+  [ -n "$REPO" ] && REPO=`cygpath --path --windows "$REPO"`
+fi
+
+exec "$JAVACMD" $JAVA_OPTS  \
+  -classpath "$CLASSPATH" \
+  -Dapp.name="elastic-search-sample" \
+  -Dapp.pid="$$" \
+  -Dapp.repo="$REPO" \
+  -Dapp.home="$BASEDIR" \
+  -Dbasedir="$BASEDIR" \
+  samples.elasticsearch.ElasticsearchExecutor \
+  "$@"
